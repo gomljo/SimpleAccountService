@@ -18,7 +18,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.simpleAccountService.type.AccountStatus.IN_USE;
-import static com.simpleAccountService.type.ErrorCode.USER_NOT_FOUND;
+import static com.simpleAccountService.type.ErrorCode.*;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +27,10 @@ public class AccountService {
     private final AccountUserRepository accountUserRepository;
     // final 타입은 무조건 생성자에 들어가야하기 때문에
     // 무조건 생성자에 포함되어 있음
+
+    private static final Integer MAX_NUMBER_OF_ACCOUNT = 10;
+    private static final String INITIAL_ACCOUNT_NUMBER = "1000000000";
+
 
     /**
      * 사용자가 있는지 조회
@@ -40,7 +44,7 @@ public class AccountService {
 
         String newAccountNumber = accountRepository.findFirstByOrderByIdDesc()
                 .map(account -> String.valueOf((Integer.parseInt(account.getAccountNumber())) + 1))
-                .orElse("1000000000");
+                .orElse(INITIAL_ACCOUNT_NUMBER);
         // 이런 방식으로 엔티티 타입을 리턴하게 되면
         // 지연 로딩이나
         // 엔티티 값 모두가 필요하지 않을 수 있기 때문에
@@ -63,23 +67,27 @@ public class AccountService {
     }
 
     private AccountUser getAccountUser(Long userId) {
-        AccountUser accountUser = accountUserRepository.findById(userId)
+        return accountUserRepository.findById(userId)
                 .orElseThrow(() -> new AccountException(USER_NOT_FOUND));
-        return accountUser;
+    }
+
+    private boolean isAccountUserOwnGreaterThanTenAccount(int numberOfAccountOwnByUser) {
+        return numberOfAccountOwnByUser >= MAX_NUMBER_OF_ACCOUNT;
     }
 
     private void validateCreateAccount(AccountUser accountUser) {
-        if (accountRepository.countByAccountUser(accountUser) == 10) {
-            throw new AccountException(ErrorCode.MAX_ACCOUNT_PER_USER_10);
+        if (isAccountUserOwnGreaterThanTenAccount(accountRepository
+                .countByAccountUser(accountUser))
+        ) {
+            throw new AccountException(MAX_ACCOUNT_PER_USER_10);
         }
     }
 
     @Transactional
     public Account getAccount(Long id) {
-        if (id < 0) {
-            throw new RuntimeException("Minus");
-        }
-        return accountRepository.findById(id).get();
+
+        return accountRepository.findById(id).orElseThrow(
+                () -> new AccountException(WRONG_ID_REQUEST));
     }
 
     @Transactional
@@ -101,13 +109,14 @@ public class AccountService {
         if (!Objects.equals(accountUser.getId(), account.getAccountUser().getId())) {
             throw new AccountException(ErrorCode.USER_ACCOUNT_UN_MATCH);
         }
-        if (account.getAccountStatus() == AccountStatus.UNREGISTERED) {
+        if (account.isAccountStatusUnregistered()) {
             throw new AccountException(ErrorCode.ACCOUNT_ALREADY_UNREGISTERED);
         }
-        if (account.getBalance() > 0) {
+        if (account.existBalance()) {
             throw new AccountException(ErrorCode.BALANCE_NOT_EMPTY);
         }
     }
+
     @Transactional
     public List<AccountDto> getAccountsByUserId(Long userId) {
         AccountUser accountUser = getAccountUser(userId);

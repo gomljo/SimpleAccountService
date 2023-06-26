@@ -46,4 +46,12 @@ public class Account extends BaseEntity{
         }
         balance += amount;
     }
+
+    public boolean isAccountStatusUnregistered(){
+        return accountStatus==AccountStatus.UNREGISTERED;
+    }
+
+    public boolean existBalance(){
+        return balance > 0;
+    }
 }

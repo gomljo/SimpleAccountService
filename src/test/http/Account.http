@@ -6,3 +6,9 @@ Content-Type: application/json
   "userId": 1,
   "initialBalance": 10000
 }
+
+### 
+
+
+### query tranasaction
+GET http://localhost:8080/transaction/

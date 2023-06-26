@@ -6,6 +6,7 @@ import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Getter
 @Setter
@@ -29,5 +30,13 @@ public class Transaction extends BaseEntity{
 
     private String transactionId;
     private LocalDateTime transactedAt;
+
+    public boolean isSameAmount(Long amount){
+        return Objects.equals(this.amount, amount);
+    }
+
+    public boolean isOverAYearFromCurrentTime(){
+        return transactedAt.isBefore(LocalDateTime.now().minusYears(1));
+    }
 
 }

@@ -8,7 +8,6 @@ import com.simpleAccountService.exception.AccountException;
 import com.simpleAccountService.repository.AccountRepository;
 import com.simpleAccountService.repository.AccountUserRepository;
 import com.simpleAccountService.repository.TransactionRepository;
-import com.simpleAccountService.type.AccountStatus;
 import com.simpleAccountService.type.TransactionResultType;
 import com.simpleAccountService.type.TransactionType;
 import lombok.RequiredArgsConstructor;
@@ -39,14 +38,14 @@ public class TransactionService {
      * 계좌가 이미 해지 상태인 경우, 거래금액이 잔액보다 큰 경우
      * 거래 금액이 너무 작거나 큰 경우 실패 응답
      */
-    private void validateUseBalance(AccountUser user, Account account, Long amount){
-        if(!Objects.equals(user.getId(), account.getAccountUser().getId())){
+    private void validateUseBalance(AccountUser user, Account account, Long amount) {
+        if (!Objects.equals(user.getId(), account.getAccountUser().getId())) {
             throw new AccountException(USER_ACCOUNT_UN_MATCH);
         }
-        if(account.getAccountStatus() != AccountStatus.IN_USE){
+        if (account.isAccountStatusUnregistered()) {
             throw new AccountException(ACCOUNT_ALREADY_UNREGISTERED);
         }
-        if(account.getBalance() < amount){
+        if (account.isRequestedAmountOverBalance(amount)) {
             throw new AccountException(AMOUNT_EXCEED_BALANCE);
         }
     }
@@ -64,13 +63,15 @@ public class TransactionService {
                         .build()
         );
     }
+
     @Transactional
     public TransactionDto useBalance(Long userId, String accountNumber,
-                                     Long amount){
+                                     Long amount) {
         AccountUser user = accountUserRepository.findById(userId)
                 .orElseThrow(() -> new AccountException(USER_NOT_FOUND));
         Account account = accountRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(()->new AccountException(ACCOUNT_NOT_FOUND));
+                .orElseThrow(() -> new AccountException(ACCOUNT_NOT_FOUND));
+
         validateUseBalance(user, account, amount);
 
         account.useBalance(amount);
@@ -81,22 +82,22 @@ public class TransactionService {
     @Transactional
     public void saveFailedUseTransaction(String accountNumber, Long amount) {
         Account account = accountRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(()->new AccountException(ACCOUNT_NOT_FOUND));
+                .orElseThrow(() -> new AccountException(ACCOUNT_NOT_FOUND));
         saveAndGetTransaction(USE, F, account, amount);
     }
+
     @Transactional
     public TransactionDto cancelBalance(
             String transactionId,
             String accountNumber,
             Long amount
-    )
-    {
-       Transaction transaction = transactionRepository.findByTransactionId(transactionId)
-               .orElseThrow(()->new AccountException(TRANSACTION_NOT_FOUND));
-       Account account = accountRepository.findByAccountNumber(accountNumber)
-               .orElseThrow(()->new AccountException(ACCOUNT_NOT_FOUND));
+    ) {
+        Transaction transaction = transactionRepository.findByTransactionId(transactionId)
+                .orElseThrow(() -> new AccountException(TRANSACTION_NOT_FOUND));
+        Account account = accountRepository.findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new AccountException(ACCOUNT_NOT_FOUND));
 
-       validateCancelBalance(transaction, account, amount);
+        validateCancelBalance(transaction, account, amount);
 
         account.cancelBalance(amount);
         return TransactionDto.fromEntity(saveAndGetTransaction(CANCEL, S, account, amount));
@@ -104,28 +105,28 @@ public class TransactionService {
     }
 
     private void validateCancelBalance(Transaction transaction, Account account, Long amount) {
-        if(!Objects.equals(transaction.getAccount().getId(), account.getId())){
+        if (!Objects.equals(transaction.getAccount().getId(), account.getId())) {
             throw new AccountException(TRANSACTION_ACCOUNT_UN_MATCH);
         }
-        if(!Objects.equals(transaction.getAmount(), amount)){
+        if (!transaction.isSameAmount(amount)) {
             throw new AccountException(CANCEL_MUST_FULLY);
         }
-        if(transaction.getTransactedAt().isBefore(LocalDateTime.now().minusYears(1))){
+        if (transaction.isOverAYearFromCurrentTime()) {
             throw new AccountException(TOO_OLD_ORDER_TO_CANCEL);
         }
     }
 
     public void saveFailedCancelTransaction(String accountNumber, Long amount) {
         Account account = accountRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(()->new AccountException(ACCOUNT_NOT_FOUND));
+                .orElseThrow(() -> new AccountException(ACCOUNT_NOT_FOUND));
         saveAndGetTransaction(CANCEL, F, account, amount);
     }
 
     public TransactionDto queryTransaction(String transactionId) {
-       ;
+        ;
         return TransactionDto.fromEntity(
                 transactionRepository.findByTransactionId(transactionId)
-                        .orElseThrow(()->new AccountException(TRANSACTION_NOT_FOUND))
+                        .orElseThrow(() -> new AccountException(TRANSACTION_NOT_FOUND))
         );
     }
 }

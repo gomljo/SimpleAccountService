@@ -19,7 +19,8 @@ public enum ErrorCode {
     TRANSACTION_ACCOUNT_UN_MATCH("이 거래는 해당 계좌에서 발생한 거래가 아닙니다."),
     CANCEL_MUST_FULLY("부분 거래 취소는 허용되지 않습니다."),
     TOO_OLD_ORDER_TO_CANCEL("1년이 지난 거래는 취소가 불가능합니다."),
-    ACCOUNT_TRANSACTION_LOCK("해당 계좌는 사용 중입니다.");
+    ACCOUNT_TRANSACTION_LOCK("해당 계좌는 사용 중입니다."),
+    WRONG_ID_REQUEST("조회하신 ID는 잘못된 형식입니다.");
 
 
 

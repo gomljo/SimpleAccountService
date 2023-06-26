@@ -19,8 +19,7 @@ import static com.simpleAccountService.type.ErrorCode.INVALID_REQUEST;
 @NoArgsConstructor
 @Builder
 @Entity
-public class Account extends BaseEntity{
-
+public class Account extends BaseEntity {
 
     @ManyToOne
     private AccountUser accountUser;
@@ -33,25 +32,29 @@ public class Account extends BaseEntity{
     private LocalDateTime registeredAt;
     private LocalDateTime unRegisteredAt;
 
-    public void useBalance(Long amount){
-        if(amount > balance){
+    public void useBalance(Long amount) {
+        if (amount > balance) {
             throw new AccountException(AMOUNT_EXCEED_BALANCE);
         }
         balance -= amount;
     }
 
-    public void cancelBalance(Long amount){
-        if(amount < 0){
+    public void cancelBalance(Long amount) {
+        if (amount < 0) {
             throw new AccountException(INVALID_REQUEST);
         }
         balance += amount;
     }
 
-    public boolean isAccountStatusUnregistered(){
-        return accountStatus==AccountStatus.UNREGISTERED;
+    public boolean isAccountStatusUnregistered() {
+        return accountStatus == AccountStatus.UNREGISTERED;
     }
 
-    public boolean existBalance(){
+    public boolean existBalance() {
         return balance > 0;
+    }
+
+    public boolean isRequestedAmountOverBalance(Long amount){
+        return amount > balance;
     }
 }

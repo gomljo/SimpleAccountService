@@ -1,6 +1,6 @@
-package com.simpleaccountservice.repository;
+package com.simpleAccountService.repository;
 
-import com.simpleaccountservice.domain.AccountUser;
+import com.simpleAccountService.domain.AccountUser;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

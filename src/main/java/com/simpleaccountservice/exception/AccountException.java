@@ -1,6 +1,6 @@
-package com.simpleaccountservice.exception;
+package com.simpleAccountService.exception;
 
-import com.simpleaccountservice.type.ErrorCode;
+import com.simpleAccountService.type.ErrorCode;
 import lombok.*;
 
 @Getter

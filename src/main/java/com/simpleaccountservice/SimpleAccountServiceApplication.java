@@ -1,4 +1,4 @@
-package com.simpleaccountservice;
+package com.simpleAccountService;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

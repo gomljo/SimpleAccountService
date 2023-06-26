@@ -1,13 +1,17 @@
-package com.simpleaccountservice.domain;
+package com.simpleAccountService.domain;
 
-import com.simpleaccountservice.type.AccountStatus;
+import com.simpleAccountService.exception.AccountException;
+import com.simpleAccountService.type.AccountStatus;
 import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.ManyToOne;
 import java.time.LocalDateTime;
+
+import static com.simpleAccountService.type.ErrorCode.AMOUNT_EXCEED_BALANCE;
+import static com.simpleAccountService.type.ErrorCode.INVALID_REQUEST;
 
 @Getter
 @Setter
@@ -15,11 +19,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 @Entity
-@EntityListeners(AuditingEntityListener.class)
-public class Account {
-    @Id
-    @GeneratedValue
-    private Long id;
+public class Account extends BaseEntity{
+
 
     @ManyToOne
     private AccountUser accountUser;
@@ -32,8 +33,17 @@ public class Account {
     private LocalDateTime registeredAt;
     private LocalDateTime unRegisteredAt;
 
-    @CreatedDate
-    private LocalDateTime createdAt;
-    @LastModifiedDate
-    private LocalDateTime updatedAt;
+    public void useBalance(Long amount){
+        if(amount > balance){
+            throw new AccountException(AMOUNT_EXCEED_BALANCE);
+        }
+        balance -= amount;
+    }
+
+    public void cancelBalance(Long amount){
+        if(amount < 0){
+            throw new AccountException(INVALID_REQUEST);
+        }
+        balance += amount;
+    }
 }

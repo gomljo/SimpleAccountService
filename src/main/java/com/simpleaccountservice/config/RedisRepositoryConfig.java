@@ -1,4 +1,4 @@
-package com.simpleaccountservice.config;
+package com.simpleAccountService.config;
 
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;

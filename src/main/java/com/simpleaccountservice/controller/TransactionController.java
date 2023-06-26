@@ -30,7 +30,6 @@ public class TransactionController {
             @Valid @RequestBody UseBalance.Request request) throws InterruptedException {
 
         try {
-//            Thread.sleep(3000L);
             return UseBalance.Response.from(transactionService.useBalance(
                     request.getUserId(),
                     request.getAccountNumber(),
